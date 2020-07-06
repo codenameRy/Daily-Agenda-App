@@ -10,6 +10,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      modal: false,
       events: [
         {
           id: 1,
@@ -37,6 +38,50 @@ class App extends Component {
     };
   }
 
+  //Add new event to the list
+
+  addEvent = () => {
+    var newArray = [...this.state.events];
+    newArray.push({
+      id: newArray.length ? newArray[newArray.length - 1].id + 1 : 1,
+      time: this.state.time,
+      title: this.state.title,
+      location: this.state.location,
+      description: this.state.description,
+      value: this.var > 5 ? "Its's grater then 5" : "Its lower or equal 5"
+    });
+    
+    //Update our events array using the setState() method
+    this.setState({ events: newArray });
+    this.setState({
+      time: "",
+      title: "",
+      location: "",
+      description: ""
+    });
+  };
+  //Store user input values in state for Add new event button
+  handleInputChange = inputName => value => {
+    const nextValue = value;
+    this.setState({
+      [inputName]: nextValue
+    });
+    console.log(this.state);
+  };
+
+  //Function - Delete event from app
+  handleDelete = eventId => {
+    const events = this.state.events.filter(e => e.id !== eventId);
+    this.setState({ events });
+  };
+
+  // Function to toggle (show/hide) the MDBootstrap modal
+  toggleModal = () => {
+    this.setState({
+      modal: !this.state.modal
+    });
+  };
+
   render() {
     return (
         <React.Fragment>
@@ -53,12 +98,14 @@ class App extends Component {
                     title={event.title}
                     location={event.location}
                     description={event.description}
+                    //Bind a child component property to a function call
+                    onDelete={this.handleDelete}
                   />
                 ))}
               </div>
               <MDBRow className="mb-4">
                 <MDBCol xl="3" md="6" className="mx-auto text-center">
-                  <MDBBtn color="info" rounded>
+                  <MDBBtn color="info" rounded onClick={this.toggleModal}>
                     Add Event
                   </MDBBtn>
                 </MDBCol>
@@ -92,6 +139,66 @@ class App extends Component {
             </MDBCol>
           </MDBRow>
         </MDBContainer>
+        
+        {/* Toggle add new pop up modal */}
+        <MDBModal isOpen={this.state.modal} toggle={this.toggleModal}>
+          <MDBModalHeader
+            className="text-center"
+            titleClass="w-100 font-weight-bold"
+            toggle={this.toggleModal}
+          >
+            Add new event
+          </MDBModalHeader>
+          <MDBModalBody>
+          {/* Add Inputs to our form inside the Modal Body */}
+          <form className="mx-3 grey-text">
+          <MDBInput
+            name="time"
+            label="Time"
+            icon="clock"
+            hint="12:30"
+            group
+            type="text"
+            getValue={this.handleInputChange("time")}
+          />
+          <MDBInput
+            name="title"
+            label="Title"
+            icon="edit"
+            hint="Briefing"
+            group
+            type="text"
+            getValue={this.handleInputChange("title")}
+          />
+          <MDBInput
+            name="location"
+            label="Location (optional)"
+            icon="map"
+            group
+            type="text"
+            getValue={this.handleInputChange("location")}
+          />
+          <MDBInput
+            name="description"
+            label="Description (optional)"
+            icon="sticky-note"
+            group
+            type="textarea"
+            getValue={this.handleInputChange("description")}
+          />
+        </form>
+          </MDBModalBody>
+          <MDBModalFooter className="justify-content-center">
+              <MDBBtn
+              color="info"
+              onClick={() => {
+                this.toggleModal();
+                this.addEvent();
+              }}>
+              Add
+            </MDBBtn>
+          </MDBModalFooter>
+        </MDBModal>
       </React.Fragment>
     );
   }
@@ -130,7 +237,12 @@ class Event extends Component {
             {this.props.time}
           </h3>
           <div className="media-body mb-3 mb-lg-3">
-            <MDBBadge color="danger" className="ml-2 float-right">
+            <MDBBadge 
+            color="danger" 
+            className="ml-2 float-right"
+            //Trigger a function call from child component
+            onClick={() => this.props.onDelete(this.props.id)}
+            >
               -
             </MDBBadge>
             <h6 className="mt-0 font-weight-bold">{this.props.title} </h6>{" "}
